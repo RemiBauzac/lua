@@ -1,5 +1,5 @@
 /*
-** $Id: ltests.c,v 2.124 2011/11/09 19:08:07 roberto Exp $
+** $Id: ltests.c,v 2.131 2012/07/02 15:38:36 roberto Exp $
 ** Internal Module for Debugging of the Lua Implementation
 ** See Copyright Notice in lua.h
 */
@@ -189,11 +189,16 @@ static int testobjref1 (global_State *g, GCObject *f, GCObject *t) {
 
 
 static void printobj (global_State *g, GCObject *o) {
-  int i = 0;
+  int i = 1;
   GCObject *p;
   for (p = g->allgc; p != o && p != NULL; p = gch(p)->next) i++;
-  if (p == NULL) i = -1;
-  printf("%d:%s(%p)-%c(%02X)", i, ttypename(gch(o)->tt), (void *)o,
+  if (p == NULL) {
+    i = 1;
+    for (p = g->finobj; p != o && p != NULL; p = gch(p)->next) i++;
+    if (p == NULL) i = 0;  /* zero means 'not found' */
+    else i = -i;  /* negative means 'found in findobj list */
+  }
+  printf("||%d:%s(%p)-%c(%02X)||", i, ttypename(gch(o)->tt), (void *)o,
            isdead(g,o)?'d':isblack(o)?'b':iswhite(o)?'w':'g', gch(o)->marked);
 }
 
@@ -267,22 +272,22 @@ static void checkproto (global_State *g, Proto *f) {
 
 
 
-static void checkclosure (global_State *g, Closure *cl) {
+static void checkCclosure (global_State *g, CClosure *cl) {
   GCObject *clgc = obj2gco(cl);
-  if (cl->c.isC) {
-    int i;
-    for (i=0; i<cl->c.nupvalues; i++)
-      checkvalref(g, clgc, &cl->c.upvalue[i]);
-  }
-  else {
-    int i;
-    lua_assert(cl->l.nupvalues == cl->l.p->sizeupvalues);
-    checkobjref(g, clgc, cl->l.p);
-    for (i=0; i<cl->l.nupvalues; i++) {
-      if (cl->l.upvals[i]) {
-        lua_assert(cl->l.upvals[i]->tt == LUA_TUPVAL);
-        checkobjref(g, clgc, cl->l.upvals[i]);
-      }
+  int i;
+  for (i = 0; i < cl->nupvalues; i++)
+    checkvalref(g, clgc, &cl->upvalue[i]);
+}
+
+
+static void checkLclosure (global_State *g, LClosure *cl) {
+  GCObject *clgc = obj2gco(cl);
+  int i;
+  if (cl->p) checkobjref(g, clgc, cl->p);
+  for (i=0; i<cl->nupvalues; i++) {
+    if (cl->upvals[i]) {
+      lua_assert(cl->upvals[i]->tt == LUA_TUPVAL);
+      checkobjref(g, clgc, cl->upvals[i]);
     }
   }
 }
@@ -320,9 +325,9 @@ static void checkstack (global_State *g, lua_State *L1) {
 }
 
 
-static void checkobject (global_State *g, GCObject *o) {
+static void checkobject (global_State *g, GCObject *o, int maybedead) {
   if (isdead(g, o))
-    lua_assert(issweepphase(g));
+    lua_assert(maybedead);
   else {
     if (g->gcstate == GCSpause && !isgenerational(g))
       lua_assert(iswhite(o));
@@ -347,15 +352,20 @@ static void checkobject (global_State *g, GCObject *o) {
         checkstack(g, gco2th(o));
         break;
       }
-      case LUA_TFUNCTION: {
-        checkclosure(g, gco2cl(o));
+      case LUA_TLCL: {
+        checkLclosure(g, gco2lcl(o));
+        break;
+      }
+      case LUA_TCCL: {
+        checkCclosure(g, gco2ccl(o));
         break;
       }
       case LUA_TPROTO: {
         checkproto(g, gco2p(o));
         break;
       }
-      case LUA_TSTRING: break;
+      case LUA_TSHRSTR:
+      case LUA_TLNGSTR: break;
       default: lua_assert(0);
     }
   }
@@ -371,7 +381,8 @@ static void checkgraylist (GCObject *l) {
     l_setbit(l->gch.marked, TESTGRAYBIT);
     switch (gch(l)->tt) {
       case LUA_TTABLE: l = gco2t(l)->gclist; break;
-      case LUA_TFUNCTION: l = gco2cl(l)->c.gclist; break;
+      case LUA_TLCL: l = gco2lcl(l)->gclist; break;
+      case LUA_TCCL: l = gco2ccl(l)->gclist; break;
       case LUA_TTHREAD: l = gco2th(l)->gclist; break;
       case LUA_TPROTO: l = gco2p(l)->gclist; break;
       default: lua_assert(0);  /* other objects cannot be gray */
@@ -416,6 +427,7 @@ int lua_checkmemory (lua_State *L) {
   global_State *g = G(L);
   GCObject *o;
   UpVal *uv;
+  int maybedead;
   if (keepinvariant(g)) {
     lua_assert(!iswhite(obj2gco(g->mainthread)));
     lua_assert(!iswhite(gcvalue(&g->l_registry)));
@@ -426,17 +438,21 @@ int lua_checkmemory (lua_State *L) {
   /* check 'allgc' list */
   markgrays(g);
   checkold(g, g->allgc);
+  lua_assert(g->sweepgc == NULL || issweepphase(g));
+  maybedead = 0;
   for (o = g->allgc; o != NULL; o = gch(o)->next) {
-    checkobject(g, o);
+    if (g->sweepgc && o == *g->sweepgc)
+      maybedead = 1;  /* part of the list not yet sweeped */
+    checkobject(g, o, maybedead);
     lua_assert(!testbit(o->gch.marked, SEPARATED));
   }
   /* check 'finobj' list */
   checkold(g, g->finobj);
   for (o = g->finobj; o != NULL; o = gch(o)->next) {
-    lua_assert(!isdead(g, o) && testbit(o->gch.marked, SEPARATED));
+    lua_assert(testbit(o->gch.marked, SEPARATED));
     lua_assert(gch(o)->tt == LUA_TUSERDATA ||
                gch(o)->tt == LUA_TTABLE);
-    checkobject(g, o);
+    checkobject(g, o, 0);
   }
   /* check 'tobefnz' list */
   checkold(g, g->tobefnz);
@@ -503,6 +519,12 @@ void luaI_printcode (Proto *pt, int size) {
     printf("%s\n", buildop(pt, pc, buff));
   }
   printf("-------\n");
+}
+
+
+void luaI_printinst (Proto *pt, int pc) {
+  char buff[100];
+  printf("%s\n", buildop(pt, pc, buff));
 }
 #endif
 
@@ -641,7 +663,15 @@ static int gc_state (lua_State *L) {
     return 1;
   }
   else {
+    global_State *g = G(L);
+    if (g->gckind == KGC_GEN && option == GCSpause)
+      luaL_error(L, "cannot go to 'pause' state in generational mode");
     lua_lock(L);
+    if (option < g->gcstate) {  /* must cross 'pause'? */
+      luaC_runtilstate(L, bitmask(GCSpause));  /* run until pause */
+      if (g->gckind == KGC_GEN)
+        g->gcstate = GCSpropagate;  /* skip pause in gen. mode */
+    }
     luaC_runtilstate(L, bitmask(option));
     lua_assert(G(L)->gcstate == option);
     lua_unlock(L);
@@ -849,6 +879,7 @@ static int loadlib (lua_State *L) {
     {"coroutine", luaopen_coroutine},
     {"debug", luaopen_debug},
     {"io", luaopen_io},
+    {"os", luaopen_os},
     {"math", luaopen_math},
     {"string", luaopen_string},
     {"table", luaopen_table},

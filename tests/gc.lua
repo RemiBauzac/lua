@@ -157,7 +157,7 @@ local function dosteps (siz)
   for i=1,100 do a[i] = {{}}; local b = {} end
   local x = gcinfo()
   local i = 0
-  repeat
+  repeat   -- do steps until it completes a collection cycle
     i = i+1
   until collectgarbage("step", siz)
   assert(gcinfo() < x)
@@ -165,29 +165,39 @@ local function dosteps (siz)
 end
 
 collectgarbage"stop"
-assert(dosteps(0) > 10)
-assert(dosteps(10) < dosteps(2))
-assert(dosteps(10000) == 1)
+
+if not _port then
+  -- test the "size" of basic GC steps (whatever they mean...)
+  assert(dosteps(0) > 10)
+  assert(dosteps(10) < dosteps(2))
+end
+
+-- collector should do a full collection with so many steps
+assert(dosteps(100000) == 1)
 assert(collectgarbage("step", 1000000) == true)
-assert(collectgarbage("step", 1000000))
+assert(collectgarbage("step", 1000000) == true)
+
 assert(not collectgarbage("isrunning"))
+collectgarbage"restart"
+assert(collectgarbage("isrunning"))
 
 
-do
-  collectgarbage()
+if not _port then
+  -- test the pace of the collector
+  collectgarbage(); collectgarbage()
   local x = gcinfo()
-  collectgarbage()
   collectgarbage"stop"
   assert(not collectgarbage("isrunning"))
   repeat
     local a = {}
-  until gcinfo() > 2 * x
+  until gcinfo() > 3 * x
   collectgarbage"restart"
   assert(collectgarbage("isrunning"))
   repeat
     local a = {}
-  until gcinfo() <= x * 1.4
+  until gcinfo() <= x * 2
 end
+
 
 print("clearing tables")
 lim = 15
@@ -345,6 +355,12 @@ for i = 1, 10 do assert(s[i]) end
 
 getmetatable(u).__gc = false
 
+
+-- __gc errors with non-string messages
+setmetatable({}, {__gc = function () error{} end})
+local a, b = pcall(collectgarbage)
+assert(not a and type(b) == "string" and string.find(b, "error in __gc"))
+
 end
 print '+'
 
@@ -444,9 +460,9 @@ while thread_id < 1000 do
 end
 
 do
-  local x = gcinfo()
   collectgarbage()
   collectgarbage"stop"
+  local x = gcinfo()
   repeat
     for i=1,1000 do _ENV.a = {} end
     collectgarbage("step", 1)   -- steps should not unblock the collector
