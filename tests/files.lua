@@ -345,6 +345,16 @@ a, b, c = assert(loadfile(file))()
 assert(a == 10 and b == "\0alo\255" and c == "hi")
 assert(os.remove(file))
 
+-- bug in 5.2.1
+do
+  io.output(io.open(file, "wb"))
+  -- save function with no upvalues
+  assert(io.write(string.dump(function () return 1 end)))
+  io.close()
+  f = assert(loadfile(file, "b", {}))
+  assert(type(f) == "function" and f() == 1)
+  assert(os.remove(file))
+end
 
 -- loading binary file with initial comment
 io.output(io.open(file, "wb"))
@@ -537,16 +547,16 @@ assert(os.date("!") == "")
 local x = string.rep("a", 10000)
 assert(os.date(x) == x)
 local t = os.time()
-T = os.date("*t", t)
+D = os.date("*t", t)
 assert(os.date(string.rep("%d", 1000), t) ==
        string.rep(os.date("%d", t), 1000))
 assert(os.date(string.rep("%", 200)) == string.rep("%", 100))
 
 local t = os.time()
-T = os.date("*t", t)
-load(os.date([[assert(T.year==%Y and T.month==%m and T.day==%d and
-  T.hour==%H and T.min==%M and T.sec==%S and
-  T.wday==%w+1 and T.yday==%j and type(T.isdst) == 'boolean')]], t))()
+D = os.date("*t", t)
+load(os.date([[assert(D.year==%Y and D.month==%m and D.day==%d and
+  D.hour==%H and D.min==%M and D.sec==%S and
+  D.wday==%w+1 and D.yday==%j and type(D.isdst) == 'boolean')]], t))()
 
 assert(not pcall(os.date, "%9"))   -- invalid conversion specifier
 assert(not pcall(os.date, "%"))   -- invalid conversion specifier
@@ -559,26 +569,26 @@ if not _noposix then
   assert(type(os.date("%Oy")) == 'string')
 end
 
-assert(os.time(T) == t)
+assert(os.time(D) == t)
 assert(not pcall(os.time, {hour = 12}))
 
-T = os.date("!*t", t)
-load(os.date([[!assert(T.year==%Y and T.month==%m and T.day==%d and
-  T.hour==%H and T.min==%M and T.sec==%S and
-  T.wday==%w+1 and T.yday==%j and type(T.isdst) == 'boolean')]], t))()
+D = os.date("!*t", t)
+load(os.date([[!assert(D.year==%Y and D.month==%m and D.day==%d and
+  D.hour==%H and D.min==%M and D.sec==%S and
+  D.wday==%w+1 and D.yday==%j and type(D.isdst) == 'boolean')]], t))()
 
 do
-  local T = os.date("*t")
-  local t = os.time(T)
-  assert(type(T.isdst) == 'boolean')
-  T.isdst = nil
-  local t1 = os.time(T)
+  local D = os.date("*t")
+  local t = os.time(D)
+  assert(type(D.isdst) == 'boolean')
+  D.isdst = nil
+  local t1 = os.time(D)
   assert(t == t1)   -- if isdst is absent uses correct default
 end
 
-t = os.time(T)
-T.year = T.year-1;
-local t1 = os.time(T)
+t = os.time(D)
+D.year = D.year-1;
+local t1 = os.time(D)
 -- allow for leap years
 assert(math.abs(os.difftime(t,t1)/(24*3600) - 365) < 2)
 

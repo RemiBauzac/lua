@@ -1,5 +1,5 @@
 /*
-** $Id: ltests.c,v 2.131 2012/07/02 15:38:36 roberto Exp $
+** $Id: ltests.c,v 2.134 2012/10/03 12:36:46 roberto Exp $
 ** Internal Module for Debugging of the Lua Implementation
 ** See Copyright Notice in lua.h
 */
@@ -182,8 +182,8 @@ void *debug_realloc (void *ud, void *b, size_t oldsize, size_t size) {
 
 static int testobjref1 (global_State *g, GCObject *f, GCObject *t) {
   if (isdead(g,t)) return 0;
-  if (isgenerational(g) || !issweepphase(g))
-    return !isblack(f) || !iswhite(t);
+  if (!issweepphase(g))
+    return !(isblack(f) && iswhite(t));
   else return 1;
 }
 
@@ -329,7 +329,7 @@ static void checkobject (global_State *g, GCObject *o, int maybedead) {
   if (isdead(g, o))
     lua_assert(maybedead);
   else {
-    if (g->gcstate == GCSpause && !isgenerational(g))
+    if (g->gcstate == GCSpause)
       lua_assert(iswhite(o));
     switch (gch(o)->tt) {
       case LUA_TUPVAL: {
@@ -432,6 +432,8 @@ int lua_checkmemory (lua_State *L) {
     lua_assert(!iswhite(obj2gco(g->mainthread)));
     lua_assert(!iswhite(gcvalue(&g->l_registry)));
   }
+  else  /* generational mode keeps collector in 'propagate' state */
+    lua_assert(!isgenerational(g));
   lua_assert(!isdead(g, gcvalue(&g->l_registry)));
   checkstack(g, g->mainthread);
   resetbit(g->mainthread->marked, TESTGRAYBIT);
@@ -457,7 +459,7 @@ int lua_checkmemory (lua_State *L) {
   /* check 'tobefnz' list */
   checkold(g, g->tobefnz);
   for (o = g->tobefnz; o != NULL; o = gch(o)->next) {
-    lua_assert(!iswhite(o));
+    lua_assert(!iswhite(o) || g->gcstate == GCSpause);
     lua_assert(!isdead(g, o) && testbit(o->gch.marked, SEPARATED));
     lua_assert(gch(o)->tt == LUA_TUSERDATA ||
                gch(o)->tt == LUA_TTABLE);
@@ -467,9 +469,7 @@ int lua_checkmemory (lua_State *L) {
     lua_assert(uv->u.l.next->u.l.prev == uv && uv->u.l.prev->u.l.next == uv);
     lua_assert(uv->v != &uv->u.value);  /* must be open */
     lua_assert(!isblack(obj2gco(uv)));  /* open upvalues are never black */
-    if (isdead(g, obj2gco(uv)))
-      lua_assert(issweepphase(g));
-    else
+    if (!isdead(g, obj2gco(uv)))
       checkvalref(g, obj2gco(uv), uv->v);
   }
   return 0;
@@ -751,7 +751,7 @@ static int string_query (lua_State *L) {
     int n = 0;
     for (ts = tb->hash[s]; ts; ts = gch(ts)->next) {
       setsvalue2s(L, L->top, rawgco2ts(ts));
-      incr_top(L);
+      api_incr_top(L);
       n++;
     }
     return n;
