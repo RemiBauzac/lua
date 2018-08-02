@@ -30,7 +30,9 @@
 #include "lundump.h"
 #include "lvm.h"
 #include "lzio.h"
-
+#ifdef LUA_USE_JIT
+#include "jit/ljit.h"
+#endif
 
 
 
@@ -340,6 +342,9 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
       L->top = ci->top;
       if (L->hookmask & LUA_MASKCALL)
         callhook(L, ci);
+#ifdef LUA_USE_JIT
+      luaJ_create(L, p);
+#endif
       return 0;
     }
     default: {  /* not a function */

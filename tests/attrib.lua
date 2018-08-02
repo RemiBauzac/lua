@@ -212,7 +212,7 @@ assert(not pcall(module, 'XUXU'))
 -- testing require of C libraries
 
 
-local p = ""   -- On Mac OS X, redefine this to "_"
+local p = "_"   -- On Mac OS X, redefine this to "_"
 
 -- check whether loadlib works in this system
 local st, err, when = package.loadlib(D"lib1.so", "*")
