@@ -541,9 +541,9 @@ static uint8_t *op_sub_create(uint8_t *bin, Proto *p, const Instruction *code,
   APPEND(LUA_TNUMBER, 4);
   /* jmp offset */
   APPEND2(X86_NJ, 6+VM_CALL_SZ);
-  /* --> Offset : mov    TM_ADD,%r8d */
+  /* --> Offset : mov    TM_SUB,%r8d */
   APPEND2(0x41, 0xb8);
-  APPEND(TM_ADD, 4);
+  APPEND(TM_SUB, 4);
   /* jmpq luaV_arith */
 	VM_CALL(luaV_arith);
 	/* vm_add can realloc base, reset it */
@@ -583,9 +583,9 @@ static uint8_t *op_mul_create(uint8_t *bin, Proto *p, const Instruction *code,
   APPEND(LUA_TNUMBER, 4);
   /* jmp offset */
   APPEND2(X86_NJ, 6+VM_CALL_SZ);
-  /* --> Offset : mov    TM_ADD,%r8d */
+  /* --> Offset : mov    TM_MUL,%r8d */
   APPEND2(0x41, 0xb8);
-  APPEND(TM_ADD, 4);
+  APPEND(TM_MUL, 4);
   /* jmpq luaV_arith */
 	VM_CALL(luaV_arith);
 	/* vm_add can realloc base, reset it */
@@ -625,9 +625,9 @@ static uint8_t *op_div_create(uint8_t *bin, Proto *p, const Instruction *code,
   APPEND(LUA_TNUMBER, 4);
   /* jmp offset */
   APPEND2(X86_NJ, 6+VM_CALL_SZ);
-  /* --> Offset : mov    TM_ADD,%r8d */
+  /* --> Offset : mov    TM_DIV,%r8d */
   APPEND2(0x41, 0xb8);
-  APPEND(TM_ADD, 4);
+  APPEND(TM_DIV, 4);
   /* jmpq luaV_arith */
 	VM_CALL(luaV_arith);
 	/* vm_add can realloc base, reset it */
