@@ -157,9 +157,10 @@
  * Increment savedpc used in lvm.c
  */
 #define LUA_ADD_SAVEDPC(arg) \
-	/* addq arg*sizeof(Instrcution) (%r12) */ \
+	/* addq arg*sizeof(Instrcution),(%r12) */ \
 	APPEND4(0x49, 0x81, 0x04, 0x24); \
 	APPEND((arg)*sizeof(Instruction), 4);
+
 
 #define VM_CALL_SZ 5
 #define VM_CALL(func) do { \
@@ -965,8 +966,8 @@ static uint8_t *op_forloop_create(uint8_t *bin, Proto *p, const Instruction *cod
 	VM_CALL(vm_forloop);
 	/* cmpl %$0x1, %eax */
 	APPEND3(0x83, 0xf8, 0x01);
-  /* je +offset */
-  APPEND2(X86_JNE, 14);
+  /* jne +offset to next instruction */
+  APPEND2(X86_JNE, 13);
   /* else */
 	LUA_ADD_SAVEDPC(GETARG_sBx(code[pc]));
 	/* jmp +offset */
@@ -1024,7 +1025,7 @@ static uint8_t *op_tforloop_create(uint8_t *bin, Proto *p, const Instruction *co
 	VM_CALL(vm_tforloop);
 	/* cmpl %$0x1, %eax */
 	APPEND3(0x83, 0xf8, 0x01);
-  APPEND2(X86_JNE, 14); /* jump to next op */
+  APPEND2(X86_JNE, 13); /* jump to next op */
   /* else */
 	LUA_ADD_SAVEDPC(GETARG_sBx(code[pc]));
 	APPEND1(X86_LJ);

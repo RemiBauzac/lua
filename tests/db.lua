@@ -16,7 +16,6 @@ function test (s, l, p)
     assert(event == 'line')
     local l = table.remove(l, 1)
     if p then print(l, line) end
-    print(l, line)
     assert(l == line, "wrong trace!!")
   end
   debug.sethook(f,"l"); load(s)(); debug.sethook()
