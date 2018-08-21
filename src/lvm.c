@@ -534,7 +534,6 @@ void luaV_execute (lua_State *L) {
     int (*jitexecute)(lua_State* L, CallInfo *ci, LClosure *cl, unsigned char *start) =
               (void *)cl->p->jit;
     if (jitexecute(L, ci, cl, cl->p->jit+cl->p->addrs[offset])) {
-      offset = ci->u.l.savedpc - cl->p->code;
       ci = L->ci;
       goto newframe;
     }

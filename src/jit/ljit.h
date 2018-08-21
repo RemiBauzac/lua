@@ -57,7 +57,7 @@ void vm_mod(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
 void vm_pow(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
 void vm_unm(lua_State* L, TValue *ra, TValue *rb);
 void vm_gettabup(lua_State* L, int b, TValue *rkc, TValue *ra);
-void vm_call(lua_State* L, TValue *ra, int b, int c, CallInfo *ci);
+int vm_call(lua_State* L, TValue *ra, int b, int c, CallInfo *ci);
 void vm_closure(lua_State* L, TValue *ra, CallInfo *ci, int bx);
 void vm_settabup(lua_State* L, int a, TValue *rkb, TValue *rkc);
 int vm_return(lua_State* L, TValue *ra, CallInfo *ci, int b);

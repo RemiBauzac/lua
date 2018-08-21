@@ -88,27 +88,18 @@ void vm_settabup(lua_State* L, int a, TValue *rkb, TValue *rkc)
 }
 
 
-void vm_call(lua_State* L, TValue *ra, int b, int c, CallInfo *ci)
+int vm_call(lua_State* L, TValue *ra, int b, int c, CallInfo *ci)
 {
   int nresults = c - 1;
 
   if (b != 0) L->top = ra+b;  /* else previous instruction set top */
   if (luaD_precall(L, ra, nresults)) {  /* C function? */
     if (nresults >= 0) L->top = ci->top;  /* adjust results */
+    return 0;
   }
   else {  /* Lua function */
-    LClosure *ncl = clLvalue(L->ci->func);
-    if (ncl->p->jit != NULL) {
-      int offset = L->ci->u.l.savedpc - ncl->p->code;
-      L->ci->callstatus |= CIST_REENTRY;
-      int (*jitexecute)(lua_State* L, CallInfo *ci, LClosure *cl, unsigned char *start) =
-          (void *)ncl->p->jit;
-		  jitexecute(L, L->ci, ncl, ncl->p->jit+ncl->p->addrs[offset]);
-      return;
-    }
-    else {
-      luaV_execute(L);
-    }
+    L->ci->callstatus |= CIST_REENTRY;
+    return 1;
   }
 }
 
@@ -331,12 +322,10 @@ int vm_tailcall(lua_State* L, CallInfo *ci, int a, int b)
 	if (b != 0) L->top = ra+b;  /* else previous instruction set top */
 
 	if (luaD_precall(L, ra, LUA_MULTRET)) { /* C function? */
-		return 1;
+		return 0;
 	}
 	else {
 		int aux;
-		LClosure *ncl;
-
 		/* tail call: put called frame (n) in place of caller one (o) */
 		CallInfo *nci = L->ci;  /* called frame */
 		CallInfo *oci = nci->previous;  /* caller frame */
@@ -354,23 +343,8 @@ int vm_tailcall(lua_State* L, CallInfo *ci, int a, int b)
 		oci->u.l.savedpc = nci->u.l.savedpc;
 		oci->callstatus |= CIST_TAIL;  /* function was tail called */
 
-		/**
-		 * Now Call new create Jit (from nci) with the old
-		 * updated frame
-		 */
-		nci = L->ci = oci;  /* remove new frame */
-		ncl = clLvalue(nci->func);
-    if (!ncl->p->jit) luaJ_create(L, ncl->p);
-		if (ncl->p->jit != NULL) {
-      unsigned int offset = nci->u.l.savedpc - ncl->p->code;
-			int (*jitexecute)(lua_State* L, CallInfo *ci, LClosure *cl, unsigned char *start) =
-				(void *)ncl->p->jit;
-			jitexecute(L, nci, ncl, ncl->p->jit+ncl->p->addrs[offset]);
-		}
-    else {
-      luaV_execute(L);
-    }
+		L->ci = oci;  /* remove new frame */
 	}
-	return 0;
+	return 1;
 }
 

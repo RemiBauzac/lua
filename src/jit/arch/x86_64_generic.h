@@ -868,7 +868,7 @@ static uint8_t *op_testset_create(uint8_t *bin, Proto *p, const Instruction *cod
 	VM_CALL(vm_testset);
 	/* cmpl %$0x1, %eax */
 	APPEND3(0x83, 0xf8, 0x01);
-  /* je +offset */
+  /* jne +offset */
   APPEND2(X86_JNE, 10); /* jump to next OP (OP_JMP) */
   /* else jump over the next OP_JUMP */
 	LUA_ADD_SAVEDPC(1);
@@ -894,8 +894,16 @@ static uint8_t *op_call_create(uint8_t *bin, Proto *p, const Instruction *code,
 	APPEND(GETARG_C(code[pc]), 4);
 	/* mov %r13, %r8 */
 	APPEND3(0x4d, 0x89, 0xe8);
+  /* prepare excution */
 	VM_CALL(vm_call);
-	/* vm_call can realloc base, reset it */
+  /* cmpl %$0x1, %eax */
+  APPEND3(0x83, 0xf8, 0x01);
+  /* jne +offset */
+  APPEND2(X86_JNE, 14); /* C function called, jump to next OP */
+  /* on call, just return to luaV_execute in new frame */
+	RESTORE_REGISTERS;
+	/* leaveq; retq */
+	APPEND2(0xc9, 0xc3);
   return prog;
 }
 
@@ -919,13 +927,13 @@ static uint8_t *op_tailcall_create(uint8_t *bin, Proto *p, const Instruction *co
 	VM_CALL(vm_tailcall);
 
 	/* if C function we have to Jump to next Lua return */
-	/* cmp $0x1, %eax */
-	APPEND3(0x83, 0xf8, 0x01);
+	/* cmpl $0x0, %eax */
+	APPEND3(0x83, 0xf8, 0x0);
 	/* jeq +offset8 */
-	APPEND2(X86_JE, 19);
+	APPEND2(X86_JE, 14);
+
 	RESTORE_REGISTERS;
-  APPEND1(0xb8);
-  APPEND(1, 4);
+  /* %eax is 0x01, used in luaV_execute */
 	/* leaveq; retq */
 	APPEND2(0xc9, 0xc3);
   return prog;
