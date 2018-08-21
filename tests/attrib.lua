@@ -212,13 +212,16 @@ assert(not pcall(module, 'XUXU'))
 -- testing require of C libraries
 
 
-local p = ""   -- On Mac OS X, redefine this to "_"
+local p = "_"   -- On Mac OS X, redefine this to "_"
 
 -- check whether loadlib works in this system
 local st, err, when = package.loadlib(D"lib1.so", "*")
 if not st then
   local f, err, when = package.loadlib("donotexist", p.."xuxu")
-  assert(not f and type(err) == "string" and when == "absent")
+  
+  -- on MacOS, when has to be "open", on Linux "absent"
+  assert(not f and type(err) == "string" and when == "open")
+  
   ;(Message or print)('\a\n >>> cannot load dynamic library <<<\n\a')
   print(err, when)
 else

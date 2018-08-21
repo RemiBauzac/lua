@@ -38,7 +38,13 @@
 #define LUA_USE_AFORMAT		/* assume 'printf' handles 'aA' specifiers */
 #endif
 
-
+#if defined(LUA_USE_LINUX) && defined(LUA_USE_JIT)
+#if defined(__LP64__) || defined(_LP64)
+#define LUA_USE_JIT_LINUX_X86_64
+#else
+#error "Jit is not available for Linux32 target"
+#endif /* defined(__LP64__) || defined(_LP64) */
+#endif /* LUA_USE_LINUX */
 
 #if defined(LUA_USE_LINUX)
 #define LUA_USE_POSIX
@@ -48,6 +54,23 @@
 #define LUA_USE_AFORMAT		/* assume 'printf' handles 'aA' specifiers */
 #define LUA_USE_LONGLONG	/* assume support for long long */
 #endif
+
+#if defined(LUA_USE_FREEBSD) && defined(LUA_USE_JIT)
+#if defined(__LP64__) || defined(_LP64)
+#define LUA_USE_JIT_FREEBSD_X86_64
+#undef LUA_USE_JIT_LINUX_X86_64
+#else
+#error "Jit is not available for FreeBSD 32bit target"
+#endif /* defined(__LP64__) || defined(_LP64) */
+#endif
+
+#if defined(LUA_USE_MACOSX) && defined(LUA_USE_JIT)
+#if defined(__LP64__) || defined(_LP64)
+#define LUA_USE_JIT_MACOSX_X86_64
+#else
+#error "Jit is not available for MacOS 32bit target"
+#endif /* defined(__LP64__) || defined(_LP64) */
+#endif /* defined(LUA_USE_MACOSX) && defined(LUA_USE_JIT) */
 
 #if defined(LUA_USE_MACOSX)
 #define LUA_USE_POSIX
@@ -431,7 +454,7 @@
 */
 
 /* the following operations need the math library */
-#if defined(lobject_c) || defined(lvm_c)
+#if defined(lobject_c) || defined(lvm_c) || defined(ljitvm_c)
 #include <math.h>
 #define luai_nummod(L,a,b)	((a) - l_mathop(floor)((a)/(b))*(b))
 #define luai_numpow(L,a,b)	(l_mathop(pow)(a,b))
