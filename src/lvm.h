@@ -41,4 +41,9 @@ LUAI_FUNC void luaV_arith (lua_State *L, StkId ra, const TValue *rb,
                            const TValue *rc, TMS op);
 LUAI_FUNC void luaV_objlen (lua_State *L, StkId ra, const TValue *rb);
 
+LUAI_FUNC Closure *getcached (Proto *p, UpVal **encup, StkId base);
+LUAI_FUNC void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
+                            StkId ra);
+LUAI_FUNC void traceexec (lua_State *L);
+
 #endif
