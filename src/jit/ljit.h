@@ -11,31 +11,31 @@
 
 static inline uint8_t *append(uint8_t *ptr, uint64_t bytes, unsigned int len)
 {
-	if (ptr) {
-        if (len == 1) {
-            *ptr = bytes;
-		}
-        else if (len == 2) {
-            *(uint16_t *)ptr = bytes;
-		}
-        else if (len == 4) {
-            *(uint32_t *)ptr = bytes;
-        }
-		else {
-			*(uint64_t *)ptr = bytes;
-		}
-	}
-	return ((uint8_t *)ptr) + len;
+  if (ptr) {
+    if (len == 1) {
+      *ptr = bytes;
+    }
+    else if (len == 2) {
+      *(uint16_t *)ptr = bytes;
+    }
+    else if (len == 4) {
+      *(uint32_t *)ptr = bytes;
+    }
+    else {
+      *(uint64_t *)ptr = bytes;
+    }
+  }
+  return ((uint8_t *)ptr) + len;
 }
 
 static inline uint8_t *appendoff(uint8_t *ptr, uint32_t offset) {
-		*(uint32_t *)ptr = offset;
-		return ptr + sizeof(uint32_t);
+    *(uint32_t *)ptr = offset;
+  return ptr + sizeof(uint32_t);
 }
 
 static inline uint8_t is_imm8(int value)
 {
-	    return value <= 127 && value >= -128;
+  return value <= 127 && value >= -128;
 }
 
 #define APPEND(bytes, len)        do { prog = append(prog, bytes, len); } while (0)

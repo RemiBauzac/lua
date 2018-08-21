@@ -31,16 +31,16 @@
 
 int luaJ_create(lua_State* L, Proto *p)
 {
-	uint8_t *prog, *tmp, *orig;
-	int pc;
-	unsigned int *addrs; /* addresses of image addr offset */
-	const Instruction* code = p->code;
+  uint8_t *prog, *tmp, *orig;
+  int pc;
+  unsigned int *addrs; /* addresses of image addr offset */
+  const Instruction* code = p->code;
 
-	if (!L || !p) return 1;
+  if (!L || !p) return 1;
 
-	if (p->sizejit && p->jit) {
-		return 0;
-	}
+  if (p->sizejit && p->jit) {
+    return 0;
+  }
 
   /**
    * Alloc temporary code buffer
@@ -51,9 +51,9 @@ int luaJ_create(lua_State* L, Proto *p)
     return 1;
   }
 
-	/* SetUp max addresses for Jumps and initialize it */
+  /* SetUp max addresses for Jumps and initialize it */
   addrs = luaM_newvector(L, p->sizecode+1, unsigned int);
-	if (!addrs) {
+  if (!addrs) {
     luaG_runerror(L, "Not enougth memory to alloc Jit addresses\n");
     luaM_free(L, prog);
     return 1;
@@ -92,12 +92,12 @@ int luaJ_create(lua_State* L, Proto *p)
   /**
    * Alloc real buffer and free temporary one
    */
-	if (jit_alloc(p)) {
-		luaG_runerror(L, "luaJ_create: cannot alloc memory (%d bytes) for %s (from %d to %d)\n",
-				p->sizejit, p->source ? getstr(p->source) : "?", p->linedefined,
+  if (jit_alloc(p)) {
+    luaG_runerror(L, "luaJ_create: cannot alloc memory (%d bytes) for %s (from %d to %d)\n",
+        p->sizejit, p->source ? getstr(p->source) : "?", p->linedefined,
         p->lastlinedefined);
-		return 1;
-	}
+    return 1;
+  }
   luaM_free(L, orig);
 
   /**

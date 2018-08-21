@@ -17,37 +17,37 @@
 
 static inline void jit_free(Proto *p)
 {
-	int tofree = p->sizejit;
-	int pagesz = getpagesize();
+  int tofree = p->sizejit;
+  int pagesz = getpagesize();
 
-	if (!p->jit) {
-		return;
-	}
+  if (!p->jit) {
+    return;
+  }
 
-	if (p->sizejit % pagesz) {
-		tofree = p->sizejit + (pagesz - p->sizejit%pagesz);
-	}
+  if (p->sizejit % pagesz) {
+    tofree = p->sizejit + (pagesz - p->sizejit%pagesz);
+  }
 
-	munmap(p->jit, tofree);
-	p->jit = NULL;
+  munmap(p->jit, tofree);
+  p->jit = NULL;
 }
 
 static inline int jit_alloc(Proto *p)
 {
-	int pagesz = getpagesize();
-	int toalloc = p->sizejit;
+  int pagesz = getpagesize();
+  int toalloc = p->sizejit;
 
-	if (p->sizejit % pagesz) {
-		toalloc = p->sizejit + (pagesz - p->sizejit%pagesz);
-	}
-	p->jit = mmap(0, toalloc, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, -1, 0);
+  if (p->sizejit % pagesz) {
+    toalloc = p->sizejit + (pagesz - p->sizejit%pagesz);
+  }
+  p->jit = mmap(0, toalloc, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE|MAP_ANON, -1, 0);
 
-	if (p->jit == MAP_FAILED) {
-		perror("mmap");
-		p->jit = NULL;
-		return 1;
-	}
-	return 0;
+  if (p->jit == MAP_FAILED) {
+    perror("mmap");
+    p->jit = NULL;
+    return 1;
+  }
+  return 0;
 }
 
 #endif
