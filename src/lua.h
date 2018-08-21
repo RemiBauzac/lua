@@ -26,6 +26,8 @@
 #define LUA_RELEASE	LUA_VERSION "." LUA_VERSION_RELEASE " (with JiT)"
 #else
 #define LUA_RELEASE	LUA_VERSION "." LUA_VERSION_RELEASE
+#endif
+
 #define LUA_COPYRIGHT	LUA_RELEASE "  Copyright (C) 1994-2012 Lua.org, PUC-Rio"
 #define LUA_AUTHORS	"R. Ierusalimschy, L. H. de Figueiredo, W. Celes"
 
