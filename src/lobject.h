@@ -489,6 +489,11 @@ typedef struct Proto {
   lu_byte numparams;  /* number of fixed parameters */
   lu_byte is_vararg;
   lu_byte maxstacksize;  /* maximum stack used by this function */
+#ifdef LUA_USE_JIT
+  unsigned char *jit;
+  int sizejit;
+  unsigned int *addrs;
+#endif
 } Proto;
 
 
