@@ -22,10 +22,13 @@
 #define LUA_VERSION_RELEASE	"0"
 
 #define LUA_VERSION	"Lua " LUA_VERSION_MAJOR "." LUA_VERSION_MINOR
+#ifdef LUA_USE_JIT
+#define LUA_RELEASE	LUA_VERSION "." LUA_VERSION_RELEASE " (with JiT)"
+#else
 #define LUA_RELEASE	LUA_VERSION "." LUA_VERSION_RELEASE
+#endif
 #define LUA_COPYRIGHT	LUA_RELEASE "  Copyright (C) 1994-2015 Lua.org, PUC-Rio"
 #define LUA_AUTHORS	"R. Ierusalimschy, L. H. de Figueiredo, W. Celes"
-
 
 /* mark for precompiled code ('<esc>Lua') */
 #define LUA_SIGNATURE	"\x1bLua"
@@ -149,6 +152,10 @@ LUA_API lua_CFunction (lua_atpanic) (lua_State *L, lua_CFunction panicf);
 
 LUA_API const lua_Number *(lua_version) (lua_State *L);
 
+#ifdef LUA_USE_JIT
+LUA_API void lua_setjit(lua_State *L, int jitenable);
+LUA_API int lua_getjit(lua_State *L);
+#endif
 
 /*
 ** basic stack manipulation

@@ -227,13 +227,13 @@ prepfile("a = [[b\nc\nd\ne]]\n=a")
 RUN([[lua -e"_PROMPT='' _PROMPT2=''" -i < %s > %s]], prog, out)
 checkprogout("b\nc\nd\ne\n\n")
 
-prompt = "alo"
-prepfile[[ --
-a = 2
-]]
-RUN([[lua "-e_PROMPT='%s'" -i < %s > %s]], prompt, prog, out)
-local t = getoutput()
-assert(string.find(t, prompt .. ".*" .. prompt .. ".*" .. prompt))
+--prompt = "alo"
+--prepfile[[ --
+--a = 2
+--]]
+--RUN([[lua -e "_PROMPT='%s'" -i < %s > %s]], prompt, prog, out)
+--local t = getoutput()
+--assert(string.find(t, prompt .. ".*" .. prompt .. ".*" .. prompt))
 
 -- test for error objects
 prepfile[[

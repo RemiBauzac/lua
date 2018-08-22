@@ -19,7 +19,6 @@ _port = rawget(_G, "_port") or false
 -- Make true to avoid messages about tests not performed
 _nomsg = rawget(_G, "_nomsg") or false
 
-
 local usertests = rawget(_G, "_U")
 
 if usertests then

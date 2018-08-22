@@ -512,7 +512,7 @@ static LClosure *getcached (Proto *p, UpVal **encup, StkId base) {
 ** already black (which means that 'cache' was already cleared by the
 ** GC).
 */
-static void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
+void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
                          StkId ra) {
   int nup = p->sizeupvalues;
   Upvaldesc *uv = p->upvalues;
@@ -657,6 +657,22 @@ void luaV_execute (lua_State *L) {
   cl = clLvalue(ci->func);
   k = cl->p->k;
   base = ci->u.l.base;
+
+#ifdef LUA_USE_JIT
+  if (lua_getjit(L) && cl->p->jit != NULL) {
+    int offset = ci->u.l.savedpc - cl->p->code;
+    int (*jitexecute)(lua_State* L, CallInfo *ci, LClosure *cl, unsigned char *start) =
+              (void *)cl->p->jit;
+    if (jitexecute(L, ci, cl, cl->p->jit+cl->p->addrs[offset])) {
+      ci = L->ci;
+      goto newframe;
+    }
+    else {
+      return;
+    }
+  }
+#endif
+
   /* main loop of interpreter */
   for (;;) {
     Instruction i = *(ci->u.l.savedpc++);

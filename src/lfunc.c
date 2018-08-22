@@ -118,6 +118,10 @@ Proto *luaF_newproto (lua_State *L) {
   f->linedefined = 0;
   f->lastlinedefined = 0;
   f->source = NULL;
+#ifdef LUA_USE_JIT
+  f->jit = NULL;
+  f->sizejit = 0;
+#endif
   return f;
 }
 
