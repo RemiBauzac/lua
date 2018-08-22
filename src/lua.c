@@ -484,7 +484,7 @@ static int collectargs (char **argv, int *first) {
         args |= has_E;
         break;
       case 'j':
-        args[has_j] = 1;
+        args |= has_j;
         break;
       case 'i':
         args |= has_i;  /* goes through  (-i implies -v) */
@@ -574,7 +574,7 @@ static int pmain (lua_State *L) {
     lua_setfield(L, LUA_REGISTRYINDEX, "LUA_NOENV");
   }
 #ifdef LUA_USE_JIT
-  lua_setjit(L, args[has_j]);
+  lua_setjit(L, (args & has_j));
 #endif
   luaL_openlibs(L);  /* open standard libraries */
   createargtable(L, argv, argc, script);  /* create table 'arg' */

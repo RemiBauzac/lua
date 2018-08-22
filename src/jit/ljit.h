@@ -46,13 +46,24 @@ static inline uint8_t is_imm8(int value)
 #define APPEND3(b1, b2, b3)       APPEND2(b1,b2);APPEND1(b3)
 #define APPEND4(b1, b2, b3, b4)   APPEND((b1) + ((b2) << 8) + ((b3) << 16) + ((b4) << 24), 4)
 
-#define JITADDR_NONE -1
+#define JITADDR_NONE -1U
 
 
 int luaJ_create(lua_State* L, Proto *p);
 void luaJ_free(lua_State* L, Proto *p);
 /* VM functions */
 void vm_hook(lua_State* L);
+void vm_add(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_sub(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_mul(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_div(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_idiv(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_band(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_bor(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_bxor(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_shl(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_shr(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
+void vm_bnot(lua_State* L, TValue *ra, TValue *rb);
 void vm_mod(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
 void vm_pow(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
 void vm_unm(lua_State* L, TValue *ra, TValue *rb);
