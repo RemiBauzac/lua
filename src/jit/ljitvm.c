@@ -276,7 +276,6 @@ int vm_return(lua_State* L, TValue *ra, CallInfo *ci, int b)
   LClosure *cl = clLvalue(ci->func);
   TValue *base = ci->u.l.base;
 
-  if (b != 0) L->top = ra+b-1;
   if (cl->p->sizep > 0) luaF_close(L, base);
   nb = luaD_poscall(L, ra, (b != 0 ? b - 1 : L->top - ra));
   if (!(ci->callstatus & CIST_REENTRY)) { /* 'ci' still the called one */
