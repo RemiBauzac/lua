@@ -206,8 +206,8 @@
 /**
  * Generic
  */
-static inline uint8_t *op_generic(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs _AU_, int pc)
+static inline uint8_t *op_generic(uint8_t *bin, Proto *p _AU_, const Instruction *code _AU_,
+    unsigned int *addrs _AU_, int pc _AU_)
 {
   uint8_t *prog = bin;
   LUA_ADD_SAVEDPC(1);
@@ -222,8 +222,8 @@ static inline uint8_t *op_generic(uint8_t *bin, Proto *p, const Instruction *cod
 /**
  * OP_MOVE opcode
  */
-static uint8_t *op_move_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_move_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   RABC_RSI(GETARG_A(code[pc]));
@@ -243,7 +243,7 @@ static uint8_t *op_move_create(uint8_t *bin, Proto *p, const Instruction *code,
  * OP_LOADK opcode
  */
 static uint8_t *op_loadk_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   TValue *rb = p->k + GETARG_Bx(code[pc]);
@@ -264,7 +264,7 @@ static uint8_t *op_loadk_create(uint8_t *bin, Proto *p, const Instruction *code,
  * OP_LOADKX opcode
  */
 static uint8_t *op_loadkx_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   TValue *rax = p->k + GETARG_Ax(code[pc+1]);
@@ -285,7 +285,7 @@ static uint8_t *op_loadkx_create(uint8_t *bin, Proto *p, const Instruction *code
 /**
  * OP_LOADBOOL opcode
  */
-static inline uint8_t *op_loadbool_create(uint8_t *bin, Proto *p, const Instruction *code,
+static inline uint8_t *op_loadbool_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
     unsigned int *addrs, int pc)
 {
   uint8_t *prog = bin;
@@ -308,8 +308,8 @@ static inline uint8_t *op_loadbool_create(uint8_t *bin, Proto *p, const Instruct
 /**
  * OP_LOADNIL opcode
  */
-static uint8_t *op_loadnil_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_loadnil_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   int b = GETARG_B(code[pc]);
@@ -328,8 +328,8 @@ static uint8_t *op_loadnil_create(uint8_t *bin, Proto *p, const Instruction *cod
 /**
  * OP_GETUPVAL opcode
  */
-static uint8_t *op_getupval_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_getupval_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -346,7 +346,7 @@ static uint8_t *op_getupval_create(uint8_t *bin, Proto *p, const Instruction *co
  * OP_GETTABUP opcode
  */
 static uint8_t *op_gettabup_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -365,7 +365,7 @@ static uint8_t *op_gettabup_create(uint8_t *bin, Proto *p, const Instruction *co
  * OP_GETTABLE opcode
  */
 static uint8_t *op_gettable_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -382,7 +382,7 @@ static uint8_t *op_gettable_create(uint8_t *bin, Proto *p, const Instruction *co
  * OP_SETTABUP opcode
  */
 static uint8_t *op_settabup_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -400,8 +400,8 @@ static uint8_t *op_settabup_create(uint8_t *bin, Proto *p, const Instruction *co
 /**
  * OP_SETUPVAL opcode
  */
-static uint8_t *op_setupval_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_setupval_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -418,7 +418,7 @@ static uint8_t *op_setupval_create(uint8_t *bin, Proto *p, const Instruction *co
  * OP_SETTABLE opcode
  */
 static uint8_t *op_settable_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -433,8 +433,8 @@ static uint8_t *op_settable_create(uint8_t *bin, Proto *p, const Instruction *co
 /**
  * OP_NEWTABLE opcode
  */
-static uint8_t *op_newtable_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_newtable_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -456,7 +456,7 @@ static uint8_t *op_newtable_create(uint8_t *bin, Proto *p, const Instruction *co
  * OP_SELF
  */
 static uint8_t *op_self_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -472,7 +472,7 @@ static uint8_t *op_self_create(uint8_t *bin, Proto *p, const Instruction *code,
  * OP_ADD opcode
  */
 static uint8_t *op_add_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -490,7 +490,7 @@ static uint8_t *op_add_create(uint8_t *bin, Proto *p, const Instruction *code,
  * OP_SUB opcode
  */
 static uint8_t *op_sub_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -508,7 +508,7 @@ static uint8_t *op_sub_create(uint8_t *bin, Proto *p, const Instruction *code,
  * OP_MUL opcode
  */
 static uint8_t *op_mul_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -668,7 +668,7 @@ static uint8_t *op_bnot_create(uint8_t *bin, Proto *p, const Instruction *code,
  * OP_MOD opcode
  */
 static uint8_t *op_mod_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -687,7 +687,7 @@ static uint8_t *op_mod_create(uint8_t *bin, Proto *p, const Instruction *code,
  * OP_POW opcode
  */
 static uint8_t *op_pow_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -706,7 +706,7 @@ static uint8_t *op_pow_create(uint8_t *bin, Proto *p, const Instruction *code,
  * OP_UNM
  */
 static uint8_t *op_unm_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */ \
@@ -722,8 +722,8 @@ static uint8_t *op_unm_create(uint8_t *bin, Proto *p, const Instruction *code,
 /**
  * OP_NOT opcode
  */
-static uint8_t *op_not_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_not_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   RABC_RDI(GETARG_A(code[pc])); \
@@ -735,8 +735,8 @@ static uint8_t *op_not_create(uint8_t *bin, Proto *p, const Instruction *code,
 /**
  * OP_LEN opcode
  */
-static uint8_t *op_len_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_len_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -751,8 +751,8 @@ static uint8_t *op_len_create(uint8_t *bin, Proto *p, const Instruction *code,
 /**
  * OP_CONCAT opcode
  */
-static uint8_t *op_concat_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_concat_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -779,7 +779,7 @@ static uint8_t *op_concat_create(uint8_t *bin, Proto *p, const Instruction *code
 /**
  * OP_JMP opcode
  */
-static uint8_t *op_jmp_create(uint8_t *bin, Proto *p, const Instruction *code,
+static uint8_t *op_jmp_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
     unsigned int *addrs, int pc)
 {
   uint8_t *prog = bin;
@@ -863,7 +863,7 @@ static uint8_t *op_le_create(uint8_t *bin, Proto *p, const Instruction *code,
 /**
  * OP_TEST opcode
  */
-static uint8_t *op_test_create(uint8_t *bin, Proto *p, const Instruction *code,
+static uint8_t *op_test_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
     unsigned int *addrs, int pc)
 {
   uint8_t *prog = bin;
@@ -883,7 +883,7 @@ static uint8_t *op_test_create(uint8_t *bin, Proto *p, const Instruction *code,
 /**
  * OP_TESTSET opcode
  */
-static uint8_t *op_testset_create(uint8_t *bin, Proto *p, const Instruction *code,
+static uint8_t *op_testset_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
     unsigned int *addrs, int pc)
 {
   uint8_t *prog = bin;
@@ -908,8 +908,8 @@ static uint8_t *op_testset_create(uint8_t *bin, Proto *p, const Instruction *cod
 /**
  * OP_CALL opcode
  */
-static uint8_t *op_call_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_call_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */ \
@@ -939,8 +939,8 @@ static uint8_t *op_call_create(uint8_t *bin, Proto *p, const Instruction *code,
 /**
  * OP_TAILCALL opcaode
  */
-static uint8_t *op_tailcall_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_tailcall_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -971,8 +971,8 @@ static uint8_t *op_tailcall_create(uint8_t *bin, Proto *p, const Instruction *co
 /**
  * OP_RETURN opcode
  */
-static uint8_t *op_return_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_return_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -993,7 +993,7 @@ static uint8_t *op_return_create(uint8_t *bin, Proto *p, const Instruction *code
 /**
  * OP_FORLOOP opcode
  */
-static uint8_t *op_forloop_create(uint8_t *bin, Proto *p, const Instruction *code,
+static uint8_t *op_forloop_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
     unsigned int *addrs, int pc)
 {
   uint8_t *prog = bin;
@@ -1016,7 +1016,7 @@ static uint8_t *op_forloop_create(uint8_t *bin, Proto *p, const Instruction *cod
 /**
  * OP_FORPREP opcode
  */
-static uint8_t *op_forprep_create(uint8_t *bin, Proto *p, const Instruction *code,
+static uint8_t *op_forprep_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
     unsigned int *addrs, int pc)
 {
   uint8_t *prog = bin;
@@ -1033,8 +1033,8 @@ static uint8_t *op_forprep_create(uint8_t *bin, Proto *p, const Instruction *cod
 /**
  * OP_TFORCALL opcode
  */
-static uint8_t *op_tforcall_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_tforcall_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -1052,7 +1052,7 @@ static uint8_t *op_tforcall_create(uint8_t *bin, Proto *p, const Instruction *co
 /**
  * OP_TFORLOOP opcode
  */
-static uint8_t *op_tforloop_create(uint8_t *bin, Proto *p, const Instruction *code,
+static uint8_t *op_tforloop_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
     unsigned int *addrs, int pc)
 {
   uint8_t *prog = bin;
@@ -1073,8 +1073,8 @@ static uint8_t *op_tforloop_create(uint8_t *bin, Proto *p, const Instruction *co
 /**
  * OP_SETLIST opcode
  */
-static uint8_t *op_setlist_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_setlist_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -1098,8 +1098,8 @@ static uint8_t *op_setlist_create(uint8_t *bin, Proto *p, const Instruction *cod
 /**
  * OP_CLOSURE opcode
  */
-static uint8_t *op_closure_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_closure_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -1117,8 +1117,8 @@ static uint8_t *op_closure_create(uint8_t *bin, Proto *p, const Instruction *cod
 /**
  * OP_VARARG opcode
  */
-static uint8_t *op_vararg_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_vararg_create(uint8_t *bin, Proto *p _AU_, const Instruction *code,
+    unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
   /* mov %rbx, %rdi */
@@ -1138,8 +1138,8 @@ static uint8_t *op_vararg_create(uint8_t *bin, Proto *p, const Instruction *code
 /**
  * OP_EXTRAARG opcode
  */
-static uint8_t *op_extraarg_create(uint8_t *bin, Proto *p, const Instruction *code,
-    unsigned int *addrs, int pc)
+static uint8_t *op_extraarg_create(uint8_t *bin, Proto *p _AU_, const Instruction *code _AU_,
+    unsigned int *addrs _AU_, int pc _AU_)
 {
   uint8_t *prog = bin;
   NOP;
