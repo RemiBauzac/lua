@@ -11,7 +11,7 @@ end
 
 _G._ARG = arg   -- save arg for other tests
 
-
+_G._port = true
 -- next variables control the execution of some tests
 -- true means no test (so an undefined variable does not skip a test)
 -- defaults are for Linux; test everything.
