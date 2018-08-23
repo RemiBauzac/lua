@@ -132,7 +132,7 @@ int luaV_tointeger (const TValue *obj, lua_Integer *p, int mode) {
 ** the extreme case when the initial value is LUA_MININTEGER, in which
 ** case the LUA_MININTEGER limit would still run the loop once.
 */
-static int forlimit (const TValue *obj, lua_Integer *p, lua_Integer step,
+int forlimit (const TValue *obj, lua_Integer *p, lua_Integer step,
                      int *stopnow) {
   *stopnow = 0;  /* usually, let loops run */
   if (!luaV_tointeger(obj, p, (step < 0 ? 2 : 1))) {  /* not fit in integer? */
@@ -583,7 +583,7 @@ lua_Integer luaV_shiftl (lua_Integer x, lua_Integer y) {
 ** whether there is a cached closure with the same upvalues needed by
 ** new closure to be created.
 */
-static LClosure *getcached (Proto *p, UpVal **encup, StkId base) {
+LClosure *getcached (Proto *p, UpVal **encup, StkId base) {
   LClosure *c = p->cache;
   if (c != NULL) {  /* is there a cached closure? */
     int nup = p->sizeupvalues;
@@ -605,7 +605,7 @@ static LClosure *getcached (Proto *p, UpVal **encup, StkId base) {
 ** already black (which means that 'cache' was already cleared by the
 ** GC).
 */
-static void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
+void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
                          StkId ra) {
   int nup = p->sizeupvalues;
   Upvaldesc *uv = p->upvalues;
@@ -750,6 +750,22 @@ void luaV_execute (lua_State *L) {
   cl = clLvalue(ci->func);
   k = cl->p->k;
   base = ci->u.l.base;
+
+#ifdef LUA_USE_JIT
+  if (lua_getjit(L) && cl->p->jit != NULL) {
+    int offset = ci->u.l.savedpc - cl->p->code;
+    int (*jitexecute)(lua_State* L, CallInfo *ci, LClosure *cl, unsigned char *start) =
+              (void *)cl->p->jit;
+    if (jitexecute(L, ci, cl, cl->p->jit+cl->p->addrs[offset])) {
+      ci = L->ci;
+      goto newframe;
+    }
+    else {
+      return;
+    }
+  }
+#endif
+
   /* main loop of interpreter */
   for (;;) {
     Instruction i = *(ci->u.l.savedpc++);

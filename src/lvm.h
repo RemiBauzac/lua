@@ -65,4 +65,11 @@ LUAI_FUNC lua_Integer luaV_mod (lua_State *L, lua_Integer x, lua_Integer y);
 LUAI_FUNC lua_Integer luaV_shiftl (lua_Integer x, lua_Integer y);
 LUAI_FUNC void luaV_objlen (lua_State *L, StkId ra, const TValue *rb);
 
+LUAI_FUNC LClosure *getcached (Proto *p, UpVal **encup, StkId base);
+LUAI_FUNC void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
+                            StkId ra);
+LUAI_FUNC void traceexec (lua_State *L);
+
+int forlimit (const TValue *obj, lua_Integer *p, lua_Integer step,
+                      int *stopnow);
 #endif

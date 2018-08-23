@@ -142,6 +142,9 @@ typedef struct global_State {
   TString *tmname[TM_N];  /* array with tag-method names */
   struct Table *mt[LUA_NUMTAGS];  /* metatables for basic types */
   TString *strcache[STRCACHE_SIZE][1];  /* cache for strings in API */
+#ifdef LUA_USE_JIT
+  int jitenable;
+#endif
 } global_State;
 
 
