@@ -32,7 +32,9 @@
 #include "lundump.h"
 #include "lvm.h"
 #include "lzio.h"
-
+#ifdef LUA_USE_JIT
+#include "jit/ljit.h"
+#endif
 
 
 #define errorstatus(s)	((s) > LUA_YIELD)
@@ -386,6 +388,10 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
       ci->callstatus = CIST_LUA;
       if (L->hookmask & LUA_MASKCALL)
         callhook(L, ci);
+#ifdef LUA_USE_JIT
+      if (lua_getjit(L) && p->jit == NULL)
+        luaJ_create(L, p);
+#endif
       return 0;
     }
     default: {  /* not a function */
