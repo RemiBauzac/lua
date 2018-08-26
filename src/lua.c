@@ -141,6 +141,9 @@ static void print_usage (const char *badoption) {
   "  -l name  require library 'name' into global 'name'\n"
   "  -v       show version information\n"
   "  -E       ignore environment variables\n"
+#ifdef LUA_USE_JIT
+  "  -j       Use jit if available\n"
+#endif
   "  --       stop handling options\n"
   "  -        stop handling options and execute stdin\n"
   ,
@@ -447,14 +450,13 @@ static int handle_script (lua_State *L, char **argv) {
   return report(L, status);
 }
 
-
-
 /* bits of various argument indicators in 'args' */
 #define has_error	1	/* bad option */
 #define has_i		2	/* -i */
 #define has_v		4	/* -v */
 #define has_e		8	/* -e */
 #define has_E		16	/* -E */
+#define has_j   32 /* -j */
 
 /*
 ** Traverses all arguments from 'argv', returning a mask with those
@@ -481,6 +483,9 @@ static int collectargs (char **argv, int *first) {
         if (argv[i][2] != '\0')  /* extra characters after 1st? */
           return has_error;  /* invalid option */
         args |= has_E;
+        break;
+      case 'j':
+        args |= has_j;
         break;
       case 'i':
         args |= has_i;  /* (-i implies -v) *//* FALLTHROUGH */
@@ -557,6 +562,7 @@ static int pmain (lua_State *L) {
   int script;
   int args = collectargs(argv, &script);
   luaL_checkversion(L);  /* check that interpreter has correct version */
+
   if (argv[0] && argv[0][0]) progname = argv[0];
   if (args == has_error) {  /* bad arg? */
     print_usage(argv[script]);  /* 'script' has index of bad arg. */
@@ -568,6 +574,9 @@ static int pmain (lua_State *L) {
     lua_pushboolean(L, 1);  /* signal for libraries to ignore env. vars. */
     lua_setfield(L, LUA_REGISTRYINDEX, "LUA_NOENV");
   }
+#ifdef LUA_USE_JIT
+  lua_setjit(L, (args & has_j));
+#endif
   luaL_openlibs(L);  /* open standard libraries */
   createargtable(L, argv, argc, script);  /* create table 'arg' */
   if (!(args & has_E)) {  /* no option '-E'? */

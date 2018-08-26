@@ -351,6 +351,7 @@ void luaH_resize (lua_State *L, Table *t, unsigned int nasize,
   AuxsetnodeT asn;
   unsigned int oldasize = t->sizearray;
   int oldhsize = allocsizenode(t);
+
   Node *nold = t->node;  /* save old hash ... */
   if (nasize > oldasize)  /* array part must grow? */
     setarrayvector(L, t, nasize);

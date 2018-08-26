@@ -31,9 +31,10 @@ PLATS= aix bsd c89 freebsd generic linux macosx mingw posix solaris
 LUA_A=	liblua.a
 CORE_O=	lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o \
 	lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o \
-	ltm.o lundump.o lvm.o lzio.o
+	ltm.o lundump.o lvm.o lzio.o jit/ljit.o jit/ljitvm.o
 LIB_O=	lauxlib.o lbaselib.o lbitlib.o lcorolib.o ldblib.o liolib.o \
 	lmathlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o loadlib.o linit.o
+
 BASE_O= $(CORE_O) $(LIB_O) $(MYOBJS)
 
 LUA_T=	lua
@@ -66,7 +67,7 @@ $(LUAC_T): $(LUAC_O) $(LUA_A)
 	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
 
 clean:
-	$(RM) $(ALL_T) $(ALL_O)
+	$(RM) $(ALL_T) $(ALL_O) $(JIT_O)
 
 depend:
 	@$(CC) $(CFLAGS) -MM l*.c
@@ -100,17 +101,16 @@ c89:
 	@echo '*** C89 does not guarantee 64-bit integers for Lua.'
 	@echo ''
 
-
 freebsd:
-	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_LINUX -DLUA_USE_READLINE -I/usr/include/edit" SYSLIBS="-Wl,-E -ledit" CC="cc"
+	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_LINUX -DLUA_USE_READLINE -DLUA_USE_JIT -I/usr/include/edit" SYSLIBS="-Wl,-E -ledit" CC="cc"
 
 generic: $(ALL)
 
 linux:
-	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_LINUX" SYSLIBS="-Wl,-E -ldl -lreadline"
+	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_LINUX -DLUA_USE_JIT" SYSLIBS="-Wl,-E -ldl -lreadline"
 
 macosx:
-	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_MACOSX" SYSLIBS="-lreadline"
+	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_MACOSX -DLUA_USE_JIT" SYSLIBS="-lreadline"
 
 mingw:
 	$(MAKE) "LUA_A=lua53.dll" "LUA_T=lua.exe" \
@@ -146,7 +146,7 @@ ldebug.o: ldebug.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
  ldebug.h ldo.h lfunc.h lstring.h lgc.h ltable.h lvm.h
 ldo.o: ldo.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
  lobject.h ltm.h lzio.h lmem.h ldebug.h ldo.h lfunc.h lgc.h lopcodes.h \
- lparser.h lstring.h ltable.h lundump.h lvm.h
+ lparser.h lstring.h ltable.h lundump.h lvm.h jit/ljit.h
 ldump.o: ldump.c lprefix.h lua.h luaconf.h lobject.h llimits.h lstate.h \
  ltm.h lzio.h lmem.h lundump.h
 lfunc.o: lfunc.c lprefix.h lua.h luaconf.h lfunc.h lobject.h llimits.h \
@@ -193,5 +193,13 @@ lvm.o: lvm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
  ltable.h lvm.h
 lzio.o: lzio.c lprefix.h lua.h luaconf.h llimits.h lmem.h lstate.h \
  lobject.h ltm.h lzio.h
+jit/ljit.o: jit/ljit.c lua.h lapi.h ldebug.h ldo.h lfunc.h lgc.h lmem.h lobject.h \
+ lopcodes.h lparser.h lstate.h lstring.h ltable.h ltm.h lundump.h lvm.h \
+ lzio.h jit/ljit.h jit/arch/linux_x86_64.h jit/arch/macosx_x86_64.h \
+ jit/arch/freebsd_x86_64.h jit/arch/x86_64_generic.h
+jit/ljitvm.o: jit/ljitvm.c lua.h lapi.h ldebug.h ldo.h lfunc.h lgc.h lmem.h lobject.h \
+ lopcodes.h lparser.h lstate.h lstring.h ltable.h ltm.h lundump.h lvm.h \
+ lzio.h jit/ljit.h jit/arch/linux_x86_64.h jit/arch/macosx_x86_64.h \
+ jit/arch/freebsd_x86_64.h jit/arch/x86_64_generic.h
 
 # (end of Makefile)
