@@ -43,6 +43,20 @@
  */
 
 #define NOP  APPEND1(0x90);
+#define NOP2 APPEND2(0x66, 0x90);
+#define NOP3 APPEND3(0x0f, 0x1f, 0x00);
+#define NOP4 APPEND4(0x0f, 0x1f, 0x40, 0x00);
+#define NOP5 APPEND4(0x0f, 0x1f, 0x44, 0x00); APPEND1(0x00);
+#define NOP6 APPEND4(0x66, 0x0f, 0x1f, 0x44); APPEND2(0x00, 0x00);
+#define NOP7 APPEND4(0x0f, 0x1f, 0x80, 0x00); APPEND3(0x00, 0x00, 0x00);
+#define NOP8 APPEND4(0x0f, 0x1f, 0x84, 0x00); APPEND4(0x00, 0x00, 0x00, 0x00);
+#define NOP9 APPEND4(0x66, 0x0f, 0x1f, 0x84); APPEND4(0x00, 0x00, 0x00, 0x00); APPEND1(0x00);
+#define NOP10 NOP6; NOP4;
+#define NOP11 NOP6; NOP5;
+#define NOP12 NOP6; NOP6;
+#define NOP13 NOP6; NOP7;
+#define NOP14 NOP7; NOP7;
+#define NOP15 NOP7; NOP8;
 
 #define RABC_RDI(arg) \
   /* mov offset8(%r13), %rdi*/ \
@@ -210,14 +224,18 @@ static inline uint8_t *op_generic(uint8_t *bin, Proto *p _AU_, const Instruction
     unsigned int *addrs _AU_, int pc _AU_)
 {
   uint8_t *prog = bin;
+  uint32_t mask = (LUA_MASKLINE | LUA_MASKCOUNT);
   LUA_ADD_SAVEDPC(1);
+  /* testb $0xc, 0xc8(%rbx) */
+  APPEND3(0xf6, 0x83, offsetof(lua_State, hookmask));
+  APPEND(htonl(mask), 4);
+  /* je +offset : move to the next instruction */
+  APPEND2(X86_JE, 8);
   /* mov %rbx, %rdi */
   APPEND3(0x48, 0x89, 0xdf);
-  VM_CALL(vm_hook);
+  VM_CALL(luaG_traceexec);
   return prog;
 }
-
-
 
 /**
  * OP_MOVE opcode

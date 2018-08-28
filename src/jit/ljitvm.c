@@ -31,12 +31,6 @@
 #endif
 
 
-void vm_hook(lua_State* L)
-{
-  if (L->hookmask & (LUA_MASKLINE | LUA_MASKCOUNT))
-    luaG_traceexec(L);
-}
-
 void vm_add(lua_State* L, TValue *ra, TValue *rb, TValue *rc)
 {
   lua_Number nb; lua_Number nc;
