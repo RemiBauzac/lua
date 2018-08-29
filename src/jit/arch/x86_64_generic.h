@@ -813,14 +813,13 @@ static uint8_t *op_jmp_create(uint8_t *bin, Proto *p _AU_, const Instruction *co
     unsigned int *addrs, int pc)
 {
   uint8_t *prog = bin;
-  /* mov %rbx, %rdi */
-  APPEND3(0x48, 0x89, 0xdf);
-  /* mov %r13, %rsi */
-  APPEND3(0x4c, 0x89, 0xee);
-  /* mov GETARG_A(i), %edx */
-  APPEND1(0xba);
-  APPEND(GETARG_A(code[pc]), 4);
-  VM_CALL(vm_jumpclose);
+  int a = GETARG_A(code[pc]);
+  if (a != 0) {
+    /* mov %rbx, %rdi */
+    APPEND3(0x48, 0x89, 0xdf);
+    RABC_RSI(a - 1);
+    VM_CALL(luaF_close);
+  }
   LUA_ADD_SAVEDPC(GETARG_sBx(code[pc]));
   APPEND1(X86_LJ);
   APPEND(addrs[pc+1+GETARG_sBx(code[pc])] - addrs[pc+1], 4);

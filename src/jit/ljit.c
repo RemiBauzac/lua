@@ -17,6 +17,8 @@
 #include "../lopcodes.h"
 #include "../lvm.h"
 #include "../lauxlib.h"
+#include "../lfunc.h"
+
 #include "ljit.h"
 
 #if defined LUA_USE_JIT_LINUX_X86_64

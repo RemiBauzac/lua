@@ -296,11 +296,6 @@ int vm_return(lua_State* L, TValue *ra, CallInfo *ci, int b)
   }
 }
 
-void vm_jumpclose(lua_State* L, CallInfo *ci, int a)
-{
-  if (a != 0) luaF_close(L, ci->u.l.base + a - 1);
-}
-
 void vm_newtable(lua_State* L, CallInfo *ci, TValue *ra, int b, int c)
 {
   Table *t = luaH_new(L);

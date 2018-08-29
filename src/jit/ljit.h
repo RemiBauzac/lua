@@ -72,7 +72,6 @@ void vm_settabup(lua_State* L, int a, TValue *rkb, TValue *rkc);
 void vm_settable(lua_State* L, const TValue *t, TValue *key, StkId val);
 void vm_gettable(lua_State *L, const TValue *t, TValue *key, StkId val);
 int vm_return(lua_State* L, TValue *ra, CallInfo *ci, int b);
-void vm_jumpclose(lua_State* L, CallInfo *ci, int a);
 void vm_newtable(lua_State* L, CallInfo *ci, TValue *ra, int b, int c);
 void vm_setupval(lua_State* L, TValue *ra, int b);
 void vm_getupval(lua_State* L, TValue *ra, int b);
