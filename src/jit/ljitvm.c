@@ -262,19 +262,6 @@ void vm_gettable(lua_State *L, const TValue *t, TValue *key, StkId val)
   }
 }
 
-int vm_call(lua_State* L, TValue *ra, int b, int c, CallInfo *ci)
-{
-  int nresults = c - 1;
-  if (b != 0) L->top = ra+b;  /* else previous instruction set top */
-  if (luaD_precall(L, ra, nresults)) {  /* C function? */
-    if (nresults >= 0) L->top = ci->top;  /* adjust results */
-    return 0;
-  }
-  else {  /* Lua function */
-    return 1;
-  }
-}
-
 void vm_closure(lua_State* L, TValue *ra, CallInfo *ci, int bx)
 {
   LClosure *cl = clLvalue(ci->func);

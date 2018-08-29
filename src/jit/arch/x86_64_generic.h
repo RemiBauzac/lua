@@ -35,7 +35,7 @@
  *  -16(%rbp): saved %r12 callee saved register
  *  -24(%rbp): saved %r13 callee saved register
  *
- * Call:
+ * Registers on call:
  *  %rdi: Lua state
  *  %rsi: CallInfo struct
  *  %rdx: Closure struct
@@ -52,7 +52,7 @@
 #define NOP8 APPEND4(0x0f, 0x1f, 0x84, 0x00); APPEND4(0x00, 0x00, 0x00, 0x00);
 #define NOP9 APPEND4(0x66, 0x0f, 0x1f, 0x84); APPEND4(0x00, 0x00, 0x00, 0x00); APPEND1(0x00);
 #define NOP10 NOP6; NOP4;
-#define NOP11 NOP6; NOP5;
+#define NOP11 APPEND4(0x66, 0x66, 0x2e, 0x0f); APPEND4(0x1f, 0x84, 0x00 0x00); APPEND3(0x00, 0x00, 0x00);
 #define NOP12 NOP6; NOP6;
 #define NOP13 NOP6; NOP7;
 #define NOP14 NOP7; NOP7;
@@ -78,9 +78,11 @@
 #define RABC_RSI(arg) \
   /* mov offset8(%r13), %rsi*/ \
   APPEND4(0x49, 0x8b, 0x75, offsetof(CallInfo, u.l.base)); \
-  /* add (arg)*sizeof(TValue), %rsi */ \
-  APPEND3(0x48, 0x81, 0xc6);\
-  APPEND((arg)*sizeof(TValue), 4);
+  if ((arg) > 0) { \
+    /* add (arg)*sizeof(TValue), %rsi */ \
+    APPEND3(0x48, 0x81, 0xc6);\
+    APPEND((arg)*sizeof(TValue), 4); \
+  }
 
 #define RK_RSI(k) APPEND2(0x48, 0xbe);APPEND((uint64_t)(k), 8);
 
@@ -95,9 +97,11 @@
 #define RABC_RDX(arg) \
   /* mov offset8(%r13), %rdx */ \
   APPEND4(0x49, 0x8b, 0x55, offsetof(CallInfo, u.l.base)); \
-  /* add (arg)*sizeof(TValue), %rdx */ \
-  APPEND3(0x48, 0x81, 0xc2);\
-  APPEND((arg)*sizeof(TValue), 4);
+  if ((arg) > 0) { \
+    /* add (arg)*sizeof(TValue), %rdx */ \
+    APPEND3(0x48, 0x81, 0xc2);\
+    APPEND((arg)*sizeof(TValue), 4); \
+  }
 
 #define RK_RDX(k) APPEND2(0x48, 0xba);APPEND((uint64_t)(k), 8);
 
@@ -112,9 +116,11 @@
 #define RABC_RCX(arg) \
   /* mov offset8(%r13), %rcx */ \
   APPEND4(0x49, 0x8b, 0x4d, offsetof(CallInfo, u.l.base)); \
-  /* add (arg)*sizeof(TValue), %rcx */ \
-  APPEND3(0x48, 0x81, 0xc1);\
-  APPEND((arg)*sizeof(TValue), 4);
+  if ((arg) > 0) { \
+    /* add (arg)*sizeof(TValue), %rcx */ \
+    APPEND3(0x48, 0x81, 0xc1);\
+    APPEND((arg)*sizeof(TValue), 4); \
+  }
 
 #define RK_RCX(k) APPEND2(0x48, 0xb9);APPEND((uint64_t)(k), 8);
 
@@ -129,9 +135,11 @@
 #define RABC_R8(arg) \
   /* mov offset8(%r13), %r8 */ \
   APPEND4(0x4d, 0x8b, 0x45, offsetof(CallInfo, u.l.base)); \
-  /* add (arg)*sizeof(TValue), %r8 */ \
-  APPEND3(0x49, 0x81, 0xc0);\
-  APPEND((arg)*sizeof(TValue), 4);
+  if ((arg) > 0) { \
+    /* add (arg)*sizeof(TValue), %r8 */ \
+    APPEND3(0x49, 0x81, 0xc0);\
+    APPEND((arg)*sizeof(TValue), 4); \
+  }
 
 #define RK_R8(k) APPEND2(0x49, 0xb8);APPEND((uint64_t)(k), 8);
 
@@ -146,9 +154,11 @@
 #define RABC_R9(arg) \
   /* mov offset8(%r13), %r9 */ \
   APPEND4(0x4d, 0x8b, 0x4d, offsetof(CallInfo, u.l.base)); \
-  /* add (arg)*sizeof(TValue), %r9 */ \
-  APPEND3(0x49, 0x81, 0xc1);\
-  APPEND((arg)*sizeof(TValue), 4);
+  if ((arg) > 0) { \
+    /* add (arg)*sizeof(TValue), %r9 */ \
+    APPEND3(0x49, 0x81, 0xc1);\
+    APPEND((arg)*sizeof(TValue), 4); \
+  }
 
 #define RK_R9(k) APPEND2(0x49, 0xb9);APPEND((uint64_t)(k), 8);
 
@@ -163,9 +173,11 @@
 #define JIT_RABC(arg) { \
   /* mov offset8(%r13), %rax */ \
   APPEND4(0x49, 0x8b, 0x45, offsetof(CallInfo, u.l.base)); \
-  /* add arg*sizeof(TValue), %rax*/\
-  APPEND2(0x48, 0x05);\
-  APPEND((arg)*sizeof(TValue), 4);\
+  if ((arg) > 0) { \
+    /* add arg*sizeof(TValue), %rax*/\
+    APPEND2(0x48, 0x05);\
+    APPEND((arg)*sizeof(TValue), 4);\
+  } \
 }
 
 /**
@@ -225,6 +237,7 @@ static inline uint8_t *op_generic(uint8_t *bin, Proto *p _AU_, const Instruction
 {
   uint8_t *prog = bin;
   uint32_t mask = (LUA_MASKLINE | LUA_MASKCOUNT);
+
   LUA_ADD_SAVEDPC(1);
   /* testb $0xc, 0xc8(%rbx) */
   APPEND3(0xf6, 0x83, offsetof(lua_State, hookmask));
@@ -392,7 +405,6 @@ static uint8_t *op_gettable_create(uint8_t *bin, Proto *p, const Instruction *co
   RKBC_RDX(GETARG_C(code[pc]), p);
   RABC_RCX(GETARG_A(code[pc]));
   VM_CALL(vm_gettable);
-  /* luaV_gettable can realloc base, reset it */
   return prog;
 }
 
@@ -930,23 +942,42 @@ static uint8_t *op_call_create(uint8_t *bin, Proto *p _AU_, const Instruction *c
     unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
+  int b = GETARG_B(code[pc]);
+  int nresults = GETARG_C(code[pc]) - 1;
+
+  if (b != 0) {
+    /* L->top = ra+b */
+    RABC_RSI(GETARG_A(code[pc])+b);
+    /* mov %rsi, offset(%rbx) */
+    APPEND4(0x48, 0x89, 0x73, offsetof(lua_State, top));
+  }
+
+  /* call luaD_precall */
   /* mov %rbx, %rdi */ \
   APPEND3(0x48, 0x89, 0xdf);
+  /* mov ra, %rsi */
   RABC_RSI(GETARG_A(code[pc]));
-  /* mov GETARG_B(i), %edx */
+  /* mov nresult, %edx */
   APPEND1(0xba);
-  APPEND(GETARG_B(code[pc]), 4);
-  /* mov GETARG_C(i), %ecx */
-  APPEND1(0xb9);
-  APPEND(GETARG_C(code[pc]), 4);
-  /* mov %r13, %r8 */
-  APPEND3(0x4d, 0x89, 0xe8);
-  /* prepare excution */
-  VM_CALL(vm_call);
-  /* cmpl %$0x1, %eax */
-  APPEND3(0x83, 0xf8, 0x01);
-  /* jne +offset */
-  APPEND2(X86_JNE, 14); /* C function called, jump to next OP */
+  APPEND(nresults, 4);
+  VM_CALL(luaD_precall);
+
+  /* testl %eax, %eax */
+  APPEND2(0x85, 0xc0);
+  /* je +offset (to movl instruction) */
+  APPEND2(X86_JE, (nresults >= 0)?10:2);
+  /* C function called */
+  if (nresults >= 0) {
+    /* L->top = ci->top */
+    /* mov offset(%r13), %r10 */
+    APPEND4(0x4d, 0x8b, 0x55, offsetof(CallInfo, top));
+    /* mov %r10, offset(%rbx) */
+    APPEND4(0x4c, 0x89, 0x53, offsetof(lua_State, top));
+  }
+  /* jmp +offset (to next OP) */
+  APPEND2(X86_NJ, 16);
+  /* incl %eax */
+  APPEND2(0xff, 0xc0);
   /* on call, just return to luaV_execute in new frame */
   RESTORE_REGISTERS;
   /* leaveq; retq */

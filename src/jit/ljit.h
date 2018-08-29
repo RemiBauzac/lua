@@ -52,7 +52,6 @@ static inline uint8_t is_imm8(int value)
 int luaJ_create(lua_State* L, Proto *p);
 void luaJ_free(lua_State* L, Proto *p);
 /* VM functions */
-void vm_hook(lua_State* L);
 void vm_add(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
 void vm_sub(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
 void vm_mul(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
@@ -68,7 +67,6 @@ void vm_mod(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
 void vm_pow(lua_State* L, TValue *ra, TValue *rb, TValue *rc);
 void vm_unm(lua_State* L, TValue *ra, TValue *rb);
 void vm_gettabup(lua_State* L, int b, TValue *rkc, TValue *ra);
-int vm_call(lua_State* L, TValue *ra, int b, int c, CallInfo *ci);
 void vm_closure(lua_State* L, TValue *ra, CallInfo *ci, int bx);
 void vm_settabup(lua_State* L, int a, TValue *rkb, TValue *rkc);
 void vm_settable(lua_State* L, const TValue *t, TValue *key, StkId val);
