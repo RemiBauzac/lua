@@ -38,8 +38,7 @@
  * Registers on call:
  *  %rdi: Lua state
  *  %rsi: CallInfo struct
- *  %rdx: Closure struct
- *  %rcx: offset for prologue jump
+ *  %rdx: offset for prologue jump
  */
 
 #define NOP  APPEND1(0x90);
@@ -225,8 +224,8 @@
   /* put &ci->u.l.savedpc in %r12 */ \
   /* lea offset8(%r13),%rax */ \
   APPEND4(0x4d, 0x8d, 0x65, offsetof(CallInfo, u.l.savedpc)); \
-  /* jmpq *%rcx */ \
-  APPEND2(0xff, 0xe1);
+  /* jmpq *%rdx */ \
+  APPEND2(0xff, 0xe2);
 
 
 /**
