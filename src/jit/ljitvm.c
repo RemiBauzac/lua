@@ -315,12 +315,6 @@ void vm_setupval(lua_State* L, TValue *ra, int b)
   luaC_upvalbarrier(L, uv);
 }
 
-void vm_getupval(lua_State* L, TValue *ra, int b)
-{
-  LClosure *cl = clLvalue(L->ci->func);
-  setobj2s(L, ra, cl->upvals[b]->v);
-}
-
 void vm_forprep(lua_State* L, TValue *ra)
 {
   TValue *init = ra;
@@ -375,12 +369,6 @@ int vm_forloop(lua_State* L __attribute__((unused)), TValue *ra)
   return 0;
 }
 
-
-int vm_eq(lua_State* L, TValue *rb, TValue *rc)
-{
-  return luaV_equalobj(L, rb, rc);
-}
-
 void vm_self(lua_State* L, TValue *ra, TValue *rb, TValue *rc)
 {
   const TValue *aux;
@@ -432,15 +420,6 @@ void vm_tforcall(lua_State* L, CallInfo *ci, TValue *ra, int c)
   L->top = ci->top;
 }
 
-int vm_tforloop(lua_State* L, TValue *ra)
-{
-  if (!ttisnil(ra + 1)) {  /* continue loop? */
-    setobjs2s(L, ra, ra + 1);  /* save control variable */
-    return 1;
-  }
-  return 0;
-}
-
 int vm_test(TValue *ra, int c)
 {
   if (c ? l_isfalse(ra) : !l_isfalse(ra)) {
@@ -456,12 +435,6 @@ int vm_testset(lua_State* L, TValue *ra, TValue *rb, int c)
   }
   setobjs2s(L, ra, rb);
   return 0;
-}
-
-void vm_concat(lua_State* L, TValue *base, int b, int c)
-{
-  L->top = base + c + 1;
-  luaV_concat(L, c - b + 1);
 }
 
 void vm_setconcat(lua_State* L, CallInfo *ci, TValue *ra, TValue *rb)

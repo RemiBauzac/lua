@@ -362,14 +362,38 @@ static uint8_t *op_getupval_create(uint8_t *bin, Proto *p _AU_, const Instructio
     unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
-  /* mov %rbx, %rdi */
-  APPEND3(0x48, 0x89, 0xdf);
-  RABC_RSI(GETARG_A(code[pc]));
+
+  /* movq 0x20(%rbx), %rax */
+  APPEND4(0x48, 0x8b, 0x43, offsetof(lua_State, ci));
+  /* movq (%rax), %rax */
+  APPEND3(0x48, 0x8b, offsetof(CallInfo, func));
+  /* movq (%rax), %rax */
+  APPEND3(0x48, 0x8b, offsetof(TValue, value_));
+
   /* mov GETARG_B(i), %edx */
   APPEND1(0xba);
   APPEND(GETARG_B(code[pc]), 4);
-  VM_CALL(vm_getupval);
+  /* movslq %edx, %rcx */
+  APPEND3(0x48, 0x63, 0xca);
+  /* movq   0x20(%rax,%rcx,8), %rax */
+  APPEND4(0x48, 0x8b, 0x44, 0xc8);
+  APPEND1(0x20);
+
+  RABC_RSI(GETARG_A(code[pc]));
+
+  /* movq (%rax), %rax */
+  APPEND3(0x48, 0x8b, offsetof(UpVal, v));
+  /* movq  (%rax), %rcx*/
+  APPEND3(0x48, 0x8b, 0x08);
+  /* movq 0x8(%rax), %rax */
+  APPEND4(0x48, 0x8b, 0x40, offsetof(TValue, tt_));
+  /* movq   %rax, 0x8(%rsi) */
+  APPEND4(0x48, 0x89, 0x46, offsetof(TValue, tt_));
+
+  /* movq   %rcx, (%rsi) */
+  APPEND3(0x48, 0x89, 0x0e);
   return prog;
+
 }
 
 /**
@@ -784,17 +808,18 @@ static uint8_t *op_concat_create(uint8_t *bin, Proto *p _AU_, const Instruction 
     unsigned int *addrs _AU_, int pc)
 {
   uint8_t *prog = bin;
+
+  RABC_RCX(GETARG_C(code[pc])+1);
+  /* mov %rcx, offset(%rbx) */
+  APPEND4(0x48, 0x89, 0x4b, offsetof(lua_State, top));
+
   /* mov %rbx, %rdi */
   APPEND3(0x48, 0x89, 0xdf);
-  /* mov offset8(%r13), %rsi */
-  APPEND4(0x49, 0x8b, 0x75, offsetof(CallInfo, u.l.base));
-  /* mov GETARG_B(i), %edx */
-  APPEND1(0xba);
-  APPEND(GETARG_B(code[pc]), 4);
-  /* mov GETARG_C(i), %ecx */
-  APPEND1(0xb9);
-  APPEND(GETARG_C(code[pc]), 4);
-  VM_CALL(vm_concat);
+  /* mov $(c - b + 1), %esi */
+  APPEND1(0xbe);
+  APPEND(GETARG_C(code[pc])-GETARG_B(code[pc])+1, 4);
+  VM_CALL(luaV_concat);
+
   /* mov %rbx, %rdi */
   APPEND3(0x48, 0x89, 0xdf);
   /* mov %r13, %rsi */
@@ -836,7 +861,7 @@ static uint8_t *op_eq_create(uint8_t *bin, Proto *p, const Instruction *code,
   APPEND3(0x48, 0x89, 0xdf);
   RKBC_RSI(GETARG_B(code[pc]), p);
   RKBC_RDX(GETARG_C(code[pc]), p);
-  VM_CALL(vm_eq);
+  VM_CALL(luaV_equalobj);
   /* cmp GETARG_A(i), %eax */
   APPEND1(0x3d);
   APPEND(GETARG_A(code[pc]), 4);
@@ -1103,14 +1128,21 @@ static uint8_t *op_tforloop_create(uint8_t *bin, Proto *p _AU_, const Instructio
     unsigned int *addrs, int pc)
 {
   uint8_t *prog = bin;
-  /* mov %rbx, %rdi */
-  APPEND3(0x48, 0x89, 0xdf);
+
   RABC_RSI(GETARG_A(code[pc]));
-  VM_CALL(vm_tforloop);
-  /* cmpl %$0x1, %eax */
-  APPEND3(0x83, 0xf8, 0x01);
-  APPEND2(X86_JNE, 13); /* jump to next op */
-  /* else */
+  /* cmpl $0x0, offset(%rsi) */
+  APPEND4(0x83, 0x7e, offsetof(TValue, tt_)+sizeof(TValue), 0x00);
+  /* jump to next op: je +offset */
+  APPEND2(X86_JE, 28);
+
+  /* movq   0x10(%rsi), %rax */
+  APPEND4(0x48, 0x8b, 0x46, sizeof(TValue));
+  /* movq   0x18(%rsi), %rcx */
+  APPEND4(0x48, 0x8b, 0x4e, offsetof(TValue, tt_)+sizeof(TValue));
+  /* movq   %rcx, 0x8(%rsi) */
+  APPEND4(0x48, 0x89, 0x4e, offsetof(TValue, tt_));
+  /* movq   %rax, (%rsi) */
+  APPEND3(0x48, 0x89, 0x06);
   LUA_ADD_SAVEDPC(GETARG_sBx(code[pc]));
   APPEND1(X86_LJ);
   APPEND(addrs[pc+1+GETARG_sBx(code[pc])] - addrs[pc+1], 4);
