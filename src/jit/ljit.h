@@ -48,7 +48,7 @@ static inline uint8_t is_imm8(int value)
 
 #define JITADDR_NONE -1U
 
-
+int luaJ_need(lua_State* L, Proto *p);
 int luaJ_create(lua_State* L, Proto *p);
 void luaJ_free(lua_State* L, Proto *p);
 /* VM functions */

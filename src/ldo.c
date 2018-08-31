@@ -463,7 +463,7 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
       if (L->hookmask & LUA_MASKCALL)
         callhook(L, ci);
 #ifdef LUA_USE_JIT
-      if (lua_getjit(L) && p->jit == NULL)
+      if (lua_getjit(L) && luaJ_need(L, p) && p->jit == NULL)
         luaJ_create(L, p);
 #endif
       return 0;

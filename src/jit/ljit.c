@@ -31,6 +31,11 @@
 #error "Jit is not supported for this plateform"
 #endif
 
+int luaJ_need(lua_State* L, Proto *p)
+{
+  return 1;
+}
+
 int luaJ_create(lua_State* L, Proto *p)
 {
   uint8_t *prog, *tmp, *orig;
